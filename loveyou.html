@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Favorite Person 💗</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@400;700&display=swap');
+        
+        body {
+            background: radial-gradient(circle at center, #1a001f 0%, #000000 100%);
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden; margin: 0; color: #ffffff; user-select: none;
+        }
+
+        /* Database Loader */
+        #loader {
+            position: fixed; inset: 0; background: black; z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .header-tag {
+            position: fixed; top: 10px; width: 100%; text-align: center;
+            z-index: 100; font-family: 'Dancing Script', cursive;
+            color: #ffb3d9; font-size: 1.4rem; letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(255,179,217,0.7);
+        }
+
+        .slide {
+            display: none; position: fixed; inset: 0; width: 100%; height: 100vh;
+            align-items: center; justify-content: center; flex-direction: column;
+            transition: all 0.6s ease-in-out; opacity: 0; z-index: 20; padding: 20px; text-align: center;
+        }
+        .slide.active { display: flex; opacity: 1; }
+
+        .cute-msg { font-family: 'Dancing Script', cursive; color: #ffebf5; text-shadow: 0 0 20px #ff00cc, 0 0 40px #ff00cc; font-size: 2.5rem; margin-top: 15px; font-weight: 700; }
+        .sub-text { color: #ffffff; font-weight: 600; font-size: 1.1rem; text-shadow: 2px 2px 4px rgba(0,0,0,1); }
+        
+        .gif-frame { 
+            width: 240px; height: 240px; border-radius: 30px; 
+            border: 3px solid #ff00cc; 
+            box-shadow: 0 0 40px rgba(255, 0, 204, 0.4); 
+            object-fit: cover; 
+        }
+
+        .glow-btn { 
+            background: linear-gradient(45deg, #ff00cc, #ff69b4); 
+            padding: 14px 35px; border-radius: 50px; font-weight: 700; 
+            box-shadow: 0 0 20px rgba(255, 0, 204, 0.5); 
+            cursor: pointer; transition: 0.3s; margin: 8px;
+            color: white; border: none; font-size: 1.1rem;
+        }
+        .glow-btn:hover { transform: scale(1.1); box-shadow: 0 0 35px #ff00cc; }
+        
+        .no-btn { background: #333; color: #aaa; padding: 10px 25px; border-radius: 50px; cursor: pointer; transition: 0.2s; }
+
+        .solar-system { position: relative; width: 250px; height: 250px; display: flex; align-items: center; justify-content: center; }
+        .orbit { position: absolute; border: 2px solid rgba(255,105,180,0.4); border-radius: 50%; animation: spin linear infinite; }
+        .orbit-1 { width: 160px; height: 160px; animation-duration: 5s; }
+        .orbit-2 { width: 240px; height: 240px; animation-duration: 9s; animation-direction: reverse; }
+        .planet { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: 24px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .star { position: absolute; background: white; border-radius: 50%; box-shadow: 0 0 10px white; animation: twinkle var(--d) infinite alternate; }
+        @keyframes twinkle { 0% { opacity: 0.2; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.3); } }
+
+        .hold-container { width: 280px; height: 16px; background: rgba(255,255,255,0.2); border-radius: 10px; margin-top: 20px; overflow: hidden; position: relative; border: 1px solid white; }
+        #holdProgress { position: absolute; left: 0; top: 0; height: 100%; background: #ff00cc; width: 0%; box-shadow: 0 0 20px #ff00cc; }
+
+        #videoLayer { display: none; position: fixed; inset: 0; background: black; z-index: 1000; align-items: center; justify-content: center; }
+        video { width: 100%; height: 100%; object-fit: contain; }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <h2 style="font-family: 'Dancing Script', cursive; font-size: 2rem;">Searching for Sunshine...</h2>
+    </div>
+
+    <div class="header-tag" id="main-header">Made by Ansh 💖</div>
+
+    <audio id="bgMusic" loop src="tere-liye.mp3"></audio>
+    <div id="stars-container" class="fixed inset-0 pointer-events-none"></div>
+
+    <div id="slide1" class="slide active">
+        <img src="gif1.gif" class="gif-frame">
+        <h1 class="cute-msg" id="p1-title">Hey Gorgeous! ✨</h1>
+        <p class="sub-text">Every second spent with you feels like a dream.</p>
+        <button onclick="startApp()" class="glow-btn">Touch My Heart 🥺</button>
+    </div>
+
+    <div id="slide2" class="slide">
+        <img src="gif2.gif" class="gif-frame">
+        <h1 class="cute-msg" id="p2-title">You're so Cute!</h1>
+        <p class="sub-text">Seriously, your smile is the highlight of my day!</p>
+        <button onclick="nextSlide()" class="glow-btn">See More 💕</button>
+    </div>
+
+    <div id="slide3" class="slide">
+        <img src="gif3.gif" class="gif-frame">
+        <h1 class="cute-msg">Our Vibe is Rare! 😌</h1>
+        <p class="sub-text">Talking to you feels like time has completely stopped.</p>
+        <button onclick="nextSlide()" class="glow-btn">Next Step ✨</button>
+    </div>
+
+    <div id="slide4" class="slide">
+        <div class="text-9xl mb-6 transition-all duration-500" id="pulseHeart">💖</div>
+        <h1 class="text-2xl font-bold">How much do I adore you?</h1>
+        <div class="hold-container"><div id="holdProgress"></div></div>
+        <button id="holdBtn" class="glow-btn mt-6 select-none">PRESS & HOLD TO FEEL</button>
+    </div>
+
+    <div id="slide5" class="slide">
+        <img src="gif4.gif" class="gif-frame">
+        <h1 class="cute-msg" id="p5-title">One in a Billion! 💎</h1>
+        <p class="sub-text">It's only been a short time, but the feeling is magical.</p>
+        <button onclick="nextSlide()" class="glow-btn">Continue...</button>
+    </div>
+
+    <div id="slide6" class="slide">
+        <div class="solar-system">
+            <div class="orbit orbit-1"><span class="planet">💗</span></div>
+            <div class="orbit orbit-2"><span class="planet">⭐</span></div>
+            <div class="text-6xl">🌍</div>
+        </div>
+        <h1 class="cute-msg mt-10" id="p6-title">My Whole Universe!</h1>
+        <p class="sub-text">Everything seems better when you're around.</p>
+        <button onclick="nextSlide()" class="glow-btn">Keep Going 🚀</button>
+    </div>
+
+    <div id="slide7" class="slide">
+        <img src="gif5.gif" class="gif-frame">
+        <h1 class="cute-msg">Don't ever leave! 🥺</h1>
+        <p class="sub-text">I've never met anyone as sweet and special as you.</p>
+        <button onclick="nextSlide()" class="glow-btn">Wait for it...</button>
+    </div>
+
+    <div id="slide8" class="slide">
+        <h1 class="cute-msg" id="p8-title">My Brightest Star! ⭐</h1>
+        <p class="sub-text max-w-xs">In a sky full of stars, my eyes only search for you.</p>
+        <button onclick="nextSlide()" class="glow-btn">Just a bit more ✨</button>
+    </div>
+
+    <div id="slide9" class="slide">
+        <img src="gif6.gif" class="gif-frame">
+        <h1 class="cute-msg" id="p9-title">Be My Everything? ❤️</h1>
+        <p class="sub-text">Will you promise to stay by my side forever?</p>
+        <div id="btnContainer" class="flex flex-wrap justify-center mt-4">
+            <button onclick="nextSlide()" class="glow-btn">YES! 😍</button>
+            <button id="noBtn" onclick="trapNo()" class="no-btn">No 🥺</button>
+        </div>
+    </div>
+
+    <div id="slide10" class="slide">
+        <img src="gif7.gif" class="gif-frame">
+        <h1 class="cute-msg" id="p10-title">Yaaay! 🥳</h1>
+        <p class="sub-text">I promise to keep that beautiful smile on your face!</p>
+        <button onclick="playSurprise()" class="glow-btn animate-bounce">A FINAL SURPRISE 🎁</button>
+    </div>
+
+    <div id="videoLayer">
+        <video id="vPlayer" playsinline src="video1.mp4"></video>
+    </div>
+
+    <script>
+        // --- FIREBASE CONFIG ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // --- DYNAMIC FETCH ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const uniqueId = urlParams.get('id');
+        let targetName = "Gorgeous";
+
+        if (uniqueId) {
+            db.ref("dynamic_links/" + uniqueId).once("value").then((snapshot) => {
+                if (snapshot.exists()) {
+                    targetName = snapshot.val().targetName;
+                    updateContent(targetName);
+                }
+                document.getElementById('loader').style.display = 'none';
+            }).catch(() => {
+                document.getElementById('loader').style.display = 'none';
+            });
+        } else {
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        function updateContent(name) {
+            document.getElementById('p1-title').innerText = `Hey ${name}! ✨`;
+            document.getElementById('p2-title').innerText = `${name}, You're so Cute!`;
+            document.getElementById('p5-title').innerText = `${name}, You're One in a Billion! 💎`;
+            document.getElementById('p6-title').innerText = `${name}, My Whole Universe!`;
+            document.getElementById('p8-title').innerText = `${name}, My Brightest Star! ⭐`;
+            document.getElementById('p9-title').innerText = `${name}, Be My Everything? ❤️`;
+            document.getElementById('p10-title').innerText = `Yaaay! My ${name} is mine! 🥳`;
+        }
+
+        // --- GAMEPLAY ---
+        let step = 1;
+        const music = document.getElementById('bgMusic');
+
+        function startApp() { 
+            music.play().catch(() => {}); 
+            nextSlide(); 
+        }
+
+        function nextSlide() {
+            document.querySelectorAll('.slide').forEach(s => { s.classList.remove('active'); s.style.display='none'; });
+            step++;
+            const current = document.getElementById('slide'+step);
+            if(current) { 
+                current.style.display='flex'; 
+                setTimeout(() => current.classList.add('active'), 50); 
+            }
+        }
+
+        function trapNo() {
+            const container = document.getElementById('btnContainer');
+            document.getElementById('noBtn').style.display = 'none';
+            for(let i=0; i<4; i++) {
+                const b = document.createElement('button');
+                b.innerHTML = "YES! 💖";
+                b.className = "glow-btn";
+                b.onclick = nextSlide;
+                container.appendChild(b);
+            }
+        }
+
+        // Hold Interaction
+        let hVal = 0, hInt;
+        const hBtn = document.getElementById('holdBtn'), hProg = document.getElementById('holdProgress'), pHeart = document.getElementById('pulseHeart');
+        
+        const startH = (e) => { 
+            e.preventDefault(); 
+            pHeart.style.transform = 'scale(1.8)';
+            hInt = setInterval(() => { 
+                hVal += 2; 
+                hProg.style.width = hVal + '%'; 
+                if(hVal >= 100) { clearInterval(hInt); nextSlide(); } 
+            }, 40); 
+        };
+        const endH = () => { clearInterval(hInt); hVal = 0; hProg.style.width = '0%'; pHeart.style.transform = 'scale(1)'; };
+        
+        hBtn.onmousedown = hBtn.ontouchstart = startH; 
+        window.onmouseup = window.ontouchend = endH;
+
+        function playSurprise() { 
+            music.pause(); 
+            document.getElementById('videoLayer').style.display = 'flex';
+            const v = document.getElementById('vPlayer');
+            v.play();
+            v.onended = () => { location.reload(); };
+        }
+
+        // Stars
+        const starContainer = document.getElementById('stars-container');
+        for(let i=0; i<80; i++) {
+            const s = document.createElement('div');
+            s.className = 'star';
+            const size = Math.random()*3 + 1 + 'px';
+            s.style.width = size; s.style.height = size;
+            s.style.left = Math.random()*100 + 'vw';
+            s.style.top = Math.random()*100 + 'vh';
+            s.style.setProperty('--d', (Math.random()*2+1)+'s');
+            starContainer.appendChild(s);
+        }
+    </script>
+</body>
+</html>

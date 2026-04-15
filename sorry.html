@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>I am Sorry 🙏</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #000; color: #fff;
+            overflow: hidden; height: 100vh; display: flex; justify-content: center; align-items: center;
+        }
+
+        #loader {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            font-family: 'Dancing Script', cursive; font-size: 1.5rem;
+        }
+
+        /* BACKGROUND ANIMATION */
+        .bg-gradient {
+            position: absolute; inset: 0;
+            background: linear-gradient(-45deg, #2c0e37, #000, #1a001f, #000);
+            background-size: 400% 400%; animation: gradientBG 10s ease infinite;
+            z-index: -1;
+        }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        .app-container { width: 100%; max-width: 450px; height: 100%; position: relative; overflow: hidden; }
+
+        .header {
+            position: absolute; top: 0; left: 0; width: 100%; padding: 20px;
+            z-index: 100; text-align: center; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        }
+        .brand { font-weight: 600; color: #ff00cc; font-size: 0.9rem; text-shadow: 0 0 10px #ff00cc; }
+
+        .section {
+            position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center;
+            align-items: center; padding: 20px; opacity: 0; visibility: hidden;
+            transition: 0.8s ease; transform: scale(0.9);
+        }
+        .section.active { opacity: 1; visibility: visible; transform: scale(1); }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px);
+            border-radius: 25px; padding: 30px; width: 100%; text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 0 30px rgba(255, 0, 204, 0.2);
+        }
+
+        .gif-container { width: 100%; height: 180px; border-radius: 20px; overflow: hidden; margin-bottom: 20px; }
+        .gif-container img { width: 100%; height: 100%; object-fit: cover; }
+
+        h2 { font-family: 'Dancing Script', cursive; font-size: 2.2rem; margin-bottom: 15px; color: #ffb3d9; }
+        p { font-size: 0.95rem; color: #ccc; line-height: 1.6; margin-bottom: 20px; }
+
+        .btn {
+            background: linear-gradient(45deg, #ff00cc, #764ba2); color: white;
+            border: none; padding: 12px 35px; border-radius: 30px; font-weight: 600;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 204, 0.3); transition: 0.3s;
+        }
+        .btn:active { transform: scale(0.9); }
+        .btn-outline { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); width: 100%; margin-bottom: 10px; color: #fff; border-radius: 15px; padding: 10px; }
+
+        .music-btn { position: absolute; bottom: 30px; right: 20px; width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; z-index: 200; cursor: pointer; }
+        
+        .emoji-float { position: absolute; bottom: -50px; font-size: 20px; animation: float 5s linear infinite; pointer-events: none; }
+        @keyframes float { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-100vh); opacity: 0; } }
+
+        #messageModal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px);
+            display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px;
+        }
+        .modal-content { background: #1a001f; border: 1px solid #ff00cc; border-radius: 20px; padding: 30px; text-align: center; max-width: 350px; }
+    </style>
+</head>
+<body>
+
+    <div id="loader">Maafi Maang Raha Hu...</div>
+
+    <audio id="bgMusic" loop src="tere-liye.mp3"></audio>
+
+    <div class="app-container">
+        <div class="bg-gradient"></div>
+        <div id="emojiContainer"></div>
+
+        <div class="header">
+            <span class="brand" id="main-brand">Made by @SMSS1708 💖</span>
+        </div>
+
+        <div class="section active" id="section1">
+            <div class="glass-card">
+                <div class="gif-container"><img src="intro.gif"></div>
+                <h2 id="p1-title">Hey!</h2>
+                <p>Ek minute ruk jaa...<br>Ek bahut important baat karni hai.</p>
+                <button class="btn" onclick="nextSection(2)">Continue ➡️</button>
+            </div>
+        </div>
+
+        <div class="section" id="section2">
+            <div class="glass-card">
+                <div class="gif-container"><img src="sorry1.gif"></div>
+                <h2 id="p2-title">Listen...</h2>
+                <p>Mujhe pata hai meri vajah se bura laga...<br>I am really, really sorry for that.</p>
+                <button class="btn" onclick="nextSection(3)">Next ➡️</button>
+            </div>
+        </div>
+
+        <div class="section" id="section3">
+            <div class="glass-card">
+                <h2>Dil se...</h2>
+                <p>Jo batana chahta hu, wo please sun lo.</p>
+                <button class="btn btn-outline" onclick="openModal('regret')">🙏 Meri Galti</button>
+                <button class="btn btn-outline" onclick="openModal('care')">🤝 Meri Value</button>
+                <button class="btn btn-outline" onclick="openModal('promise')">💪 Mera Wada</button>
+                <button class="btn mt-4" onclick="nextSection(4)">Continue ➡️</button>
+            </div>
+        </div>
+
+        <div class="section" id="section4">
+            <div class="glass-card">
+                <div class="gif-container"><img src="promise.gif"></div>
+                <p id="p4-final">
+                    Mera iraada kabhi hurt karne ka nahi tha.<br>
+                    Aage se dhyan rakhunga, I promise.
+                </p>
+                <h2>Maaf Kar Do? 🙏</h2>
+                <button class="btn" onclick="nextSection(5)">Yes, Maaf Kiya ✨</button>
+            </div>
+        </div>
+
+        <div class="section" id="section5">
+            <div class="glass-card">
+                <div class="gif-container"><img src="endlove.gif"></div>
+                <h2>Thank You! ❤️</h2>
+                <p>Ab smile kar do, please!<br>Reply ka intezar rahega.</p>
+                <small>@smss1708 | Made with Love</small>
+            </div>
+        </div>
+
+        <div class="music-btn" onclick="toggleMusic()">🎵</div>
+
+        <div id="messageModal" onclick="closeModal()">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <h2 id="modalTitle">Title</h2>
+                <p id="modalText">Message...</p>
+                <button class="btn mt-4" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const uniqueId = urlParams.get('id');
+        let targetName = "Urvi";
+
+        if (uniqueId) {
+            db.ref("dynamic_links/" + uniqueId).once("value").then((snapshot) => {
+                if (snapshot.exists()) {
+                    targetName = snapshot.val().targetName;
+                    updateUI(targetName);
+                }
+                document.getElementById('loader').style.display = 'none';
+            });
+        } else {
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        function updateUI(name) {
+            document.getElementById('p1-title').innerText = `Hey ${name}`;
+            document.getElementById('p2-title').innerText = `${name}...`;
+            document.getElementById('p4-final').innerHTML = `<strong>${name}</strong>, meri galti thi.<br>I promise aage se better banunga.`;
+            document.title = `Sorry ${name} 🙏`;
+        }
+
+        // --- NAVIGATION ---
+        let currentStep = 1;
+        const music = document.getElementById('bgMusic');
+        
+        function nextSection(num) {
+            music.play().catch(()=>{});
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById('section' + num).classList.add('active');
+        }
+
+        function toggleMusic() {
+            music.paused ? music.play() : music.pause();
+        }
+
+        // --- MODAL ---
+        const messages = {
+            regret: { title: "Meri Galti 🙏", text: "Jo bura laga wo unintentional tha, lekin galti meri hi hai. I am really sorry." },
+            care: { title: "Value 🤝", text: "Tu mere liye important hai, isliye ye sab banaya. Teri feelings matter karti hain." },
+            promise: { title: "Wada 💪", text: "Aage se zyada sununga aur better samjhunga. Kabhi hurt nahi karunga fir se." }
+        };
+
+        function openModal(type) {
+            document.getElementById('modalTitle').innerText = messages[type].title;
+            document.getElementById('modalText').innerText = messages[type].text;
+            document.getElementById('messageModal').style.display = 'flex';
+        }
+        function closeModal() { document.getElementById('messageModal').style.display = 'none'; }
+
+        // --- EMOJIS ---
+        setInterval(() => {
+            const e = document.createElement('div');
+            e.className = 'emoji-float';
+            e.innerText = ['🙏', '✨', '🥺', '💖'][Math.floor(Math.random()*4)];
+            e.style.left = Math.random() * 100 + 'vw';
+            document.getElementById('emojiContainer').appendChild(e);
+            setTimeout(() => e.remove(), 5000);
+        }, 5000);
+    </script>
+</body>
+</html>

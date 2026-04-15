@@ -2,308 +2,166 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Good Morning 💖</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Link Generator | @smss1708</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Dancing+Script:wght@700&display=swap');
+        
         body {
-            background-color: #050505;
-            color: #fff;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: radial-gradient(circle at center, #1a002a 0%, #000000 100%);
+            font-family: 'Poppins', sans-serif;
+            color: white; min-height: 100vh; overflow-x: hidden;
         }
 
-        /* Floating Instagram Handle */
         .insta-tag {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
-            letter-spacing: 1px;
-            z-index: 1000;
-            text-shadow: 0 0 10px rgba(255, 77, 109, 0.5);
+            position: fixed; top: 15px; width: 100%; text-align: center;
+            font-weight: 700; color: #ff00cc; letter-spacing: 2px;
+            text-shadow: 0 0 10px #ff00cc; z-index: 100; font-size: 0.9rem;
         }
 
-        /* Section Containers */
-        .section {
-            display: none; /* Hidden by default */
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            width: 100%;
-            height: 100%;
-            padding: 20px;
-            animation: fadeIn 1s ease-in-out forwards;
-        }
-
-        .active {
-            display: flex;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Glassmorphism Card Style */
-        .card {
-            background: rgba(255, 255, 255, 0.05);
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 30px 20px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            max-width: 350px;
-            width: 100%;
-        }
-
-        .photo-frame {
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #ff4d6d;
-            box-shadow: 0 0 20px rgba(255, 77, 109, 0.6);
-            margin-bottom: 20px;
-        }
-
-        h2 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: #ffb3c1;
-            line-height: 1.4;
-        }
-
-        h3 {
-            font-size: 24px;
-            color: #ff4d6d;
-            margin-bottom: 15px;
-            text-shadow: 0 0 10px rgba(255, 77, 109, 0.5);
-        }
-
-        /* Buttons */
-        .btn {
-            background: linear-gradient(45deg, #ff4d6d, #c9184a);
-            color: white;
-            border: none;
-            padding: 12px 25px;
             border-radius: 30px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(201, 24, 74, 0.4);
-            transition: all 0.3s ease;
-            margin-top: 10px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
         }
 
-        .btn:active {
-            transform: scale(0.95);
+        .neon-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white; transition: 0.3s;
+        }
+        .neon-input:focus {
+            border-color: #ff00cc; box-shadow: 0 0 15px rgba(255, 0, 204, 0.3);
+            outline: none;
         }
 
-        /* Scanner Animation */
-        .scanner-box {
-            width: 220px;
-            height: 220px;
-            position: relative;
-            border: 2px solid rgba(255, 77, 109, 0.3);
-            border-radius: 20px;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: inset 0 0 20px rgba(255, 77, 109, 0.2);
+        .generate-btn {
+            background: linear-gradient(45deg, #ff00cc, #764ba2);
+            transition: 0.4s; font-weight: 700;
+        }
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 0, 204, 0.5);
         }
 
-        .scanner-box::before {
-            content: 'Scanning Target...';
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 14px;
-            letter-spacing: 2px;
-            animation: pulseText 1.5s infinite;
+        .template-card {
+            cursor: pointer; transition: 0.3s;
+            border: 2px solid transparent;
+        }
+        .template-card.selected {
+            border-color: #ff00cc; background: rgba(255, 0, 204, 0.1);
+            transform: scale(1.05);
         }
 
-        .scan-line {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: #ff4d6d;
-            box-shadow: 0 0 15px #ff4d6d, 0 0 30px #ff4d6d;
-            animation: scanning 2s infinite linear;
-        }
-
-        @keyframes scanning {
-            0% { top: 0; opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
-        }
-
-        @keyframes pulseText {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.8; }
-        }
-
-        /* Fullscreen Videos */
-        .video-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 1;
-            pointer-events: none; /* Prevents user from pausing/clicking */
-        }
-
-        /* Message over video after it ends */
-        .video-overlay-msg {
-            display: none;
-            position: relative;
-            z-index: 10;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-            border: 1px solid rgba(255, 77, 109, 0.5);
-            backdrop-filter: blur(10px);
-            animation: fadeIn 1s forwards;
-        }
-
-        .video-overlay-msg h2 {
-            font-size: 22px;
-            color: #fff;
-            margin-bottom: 20px;
-        }
+        #resultArea { display: none; }
     </style>
 </head>
-<body>
-
-    <audio id="bgMusic" loop>
-        <source src="tere-liye.mp3" type="audio/mpeg">
-    </audio>
+<body class="flex items-center justify-center p-4">
 
     <div class="insta-tag">insta - @smss1708</div>
 
-    <section id="screen1" class="section active">
-        <div class="card">
-            <img src="photo1.jpg" alt="Baby" class="photo-frame">
-            <h2>Good morning baby, have a beautiful day just like you 🥰</h2>
-            <button class="btn" onclick="startScanner()">Click Here ❤️</button>
-        </div>
-    </section>
+    <div class="app-container w-full max-w-md mt-12">
+        <div class="glass-card p-8">
+            <h1 class="text-3xl font-bold text-center mb-2" style="font-family: 'Dancing Script';">Create a Surprise</h1>
+            <p class="text-gray-400 text-center text-sm mb-8">Generate a romantic link for your favorite person</p>
 
-    <section id="screen2" class="section">
-        <div class="scanner-box">
-            <div class="scan-line"></div>
-        </div>
-    </section>
+            <div class="mb-6">
+                <label class="block text-xs uppercase tracking-widest text-gray-400 mb-2 ml-1">Person Name</label>
+                <input type="text" id="targetName" placeholder="Enter name (e.g. Anushka)" 
+                       class="w-full neon-input rounded-2xl p-4 text-lg">
+            </div>
 
-    <section id="screen3" class="section">
-        <div class="card">
-            <h3>Result: You are a cutie 😍</h3>
-            <button class="btn" onclick="playFirstVideo()">Bachchu I want to say something</button>
-        </div>
-    </section>
+            <label class="block text-xs uppercase tracking-widest text-gray-400 mb-3 ml-1">Choose Vibe</label>
+            <div class="grid grid-cols-2 gap-3 mb-8">
+                <div class="template-card glass-card p-3 text-center rounded-2xl" onclick="selectTemplate('birthday.html', this)">
+                    <span class="text-2xl">🎂</span><p class="text-xs mt-1">Birthday</p>
+                </div>
+                <div class="template-card glass-card p-3 text-center rounded-2xl" onclick="selectTemplate('love.html', this)">
+                    <span class="text-2xl">💖</span><p class="text-xs mt-1">Proposal</p>
+                </div>
+                <div class="template-card glass-card p-3 text-center rounded-2xl" onclick="selectTemplate('morning.html', this)">
+                    <span class="text-2xl">☀️</span><p class="text-xs mt-1">Morning</p>
+                </div>
+                <div class="template-card glass-card p-3 text-center rounded-2xl" onclick="selectTemplate('sorry.html', this)">
+                    <span class="text-2xl">🙏</span><p class="text-xs mt-1">Sorry</p>
+                </div>
+            </div>
 
-    <section id="screen4" class="section" style="padding: 0;">
-        <div class="video-container">
-            <video id="vid1" playsinline disablePictureInPicture>
-                <source src="video1.mp4" type="video/mp4">
-            </video>
-            
-            <div id="vid1-msg" class="video-overlay-msg">
-                <h2>Mera Kuchupuchu 🌺<br>I have one more</h2>
-                <button class="btn" onclick="playSecondVideo()">Show Me 💖</button>
+            <button onclick="generateLink()" class="generate-btn w-full py-4 rounded-2xl text-lg mb-4">
+                Generate Magical Link ✨
+            </button>
+
+            <div id="resultArea" class="animate-pulse">
+                <div class="bg-black/40 p-4 rounded-xl border border-dashed border-pink-500/50">
+                    <p class="text-[10px] text-gray-400 mb-1">YOUR UNIQUE LINK:</p>
+                    <p id="generatedLink" class="text-pink-400 text-sm break-all font-mono"></p>
+                    <button onclick="copyLink()" class="mt-3 text-xs text-white bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20">
+                        Copy to Clipboard 📋
+                    </button>
+                </div>
             </div>
         </div>
-    </section>
-
-    <section id="screen5" class="section" style="padding: 0;">
-        <div class="video-container">
-            <video id="vid2" playsinline disablePictureInPicture loop>
-                <source src="video2.mp4" type="video/mp4">
-            </video>
-        </div>
-    </section>
+        
+        <p class="text-center mt-6 text-gray-500 text-xs">Made by - @smss1708 | 2026 Edition</p>
+    </div>
 
     <script>
-        const bgMusic = document.getElementById('bgMusic');
-        const vid1 = document.getElementById('vid1');
-        const vid2 = document.getElementById('vid2');
-
-        function switchScreen(hideId, showId) {
-            document.getElementById(hideId).classList.remove('active');
-            document.getElementById(showId).classList.add('active');
-        }
-
-        // Starts BG music and triggers the scanner
-        function startScanner() {
-            // Play background music on first interaction
-            bgMusic.play();
-            
-            switchScreen('screen1', 'screen2');
-            
-            // Simulate scanning for 3.5 seconds, then show result
-            setTimeout(() => {
-                switchScreen('screen2', 'screen3');
-            }, 3500);
-        }
-
-        // Plays First Video
-        function playFirstVideo() {
-            switchScreen('screen3', 'screen4');
-            bgMusic.pause(); // Pause BG music so video voice is clear
-            vid1.play();
-        }
-
-        // When Video 1 ends
-        vid1.onended = function() {
-            bgMusic.play(); // Resume BG music
-            vid1.style.opacity = "0.3"; // Dim the video in background
-            document.getElementById('vid1-msg').style.display = 'block'; // Show "Kuchupuchu" message
+        // --- FIREBASE CONFIG (Replace with your own) ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        // Plays Second Video
-        function playSecondVideo() {
-            switchScreen('screen4', 'screen5');
-            bgMusic.pause(); // Pause BG music again
-            vid2.play();
+        let selectedFile = "";
+
+        function selectTemplate(file, element) {
+            selectedFile = file;
+            document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+            element.classList.add('selected');
         }
 
-        // If you want BG music to resume after Video 2 ends (optional, currently it loops)
-        vid2.onended = function() {
-            bgMusic.play(); 
-        };
+        async function generateLink() {
+            const name = document.getElementById('targetName').value.trim();
+            if(!name || !selectedFile) {
+                alert("Bhai, naam likho aur template select karo!");
+                return;
+            }
+
+            const uniqueId = "smss-" + Math.random().toString(36).substr(2, 9);
+            
+            // Push to Firebase
+            try {
+                await db.ref("dynamic_links/" + uniqueId).set({
+                    targetName: name,
+                    template: selectedFile,
+                    createdAt: Date.now()
+                });
+
+                const finalLink = window.location.origin + "/" + selectedFile + "?id=" + uniqueId;
+                document.getElementById('generatedLink').innerText = finalLink;
+                document.getElementById('resultArea').style.display = 'block';
+            } catch (error) {
+                alert("Error: Firebase check karo!");
+            }
+        }
+
+        function copyLink() {
+            const link = document.getElementById('generatedLink').innerText;
+            navigator.clipboard.writeText(link);
+            alert("Link Copied! Ab send kar do 🚀");
+        }
     </script>
 </body>
 </html>

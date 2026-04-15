@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Good Morning ☀️</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@400;600;700&display=swap');
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        body {
+            background: linear-gradient(180deg, #ffffff 0%, #fff9e6 100%);
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden; height: 100vh; width: 100vw;
+            color: #444; user-select: none;
+        }
+
+        #db-loader {
+            position: fixed; inset: 0; background: white; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        .header-tag {
+            position: fixed; top: 15px; width: 100%; text-align: center;
+            z-index: 100; font-size: 0.8rem; font-weight: 700;
+            color: #d4af37; letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        #moon-container {
+            position: fixed; top: 10%; right: 10%; width: 80px; height: 80px;
+            z-index: 5; transition: opacity 2s ease;
+        }
+        .moon {
+            width: 100%; height: 100%; background: #fdfae5; border-radius: 50%;
+            box-shadow: inset -10px 0 15px rgba(0,0,0,0.1), 0 0 25px rgba(253,250,229,0.4);
+            animation: rotateMoon 10s linear infinite; position: relative;
+        }
+        @keyframes rotateMoon { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .slide {
+            display: none; position: fixed; inset: 0; width: 100%; height: 100%;
+            align-items: center; justify-content: center; flex-direction: column;
+            opacity: 0; z-index: 20; padding: 25px; text-align: center;
+            transition: opacity 0.6s ease;
+        }
+        .slide.active { display: flex; opacity: 1; }
+
+        .glow-title { 
+            font-family: 'Dancing Script', cursive; color: #333; 
+            text-shadow: 0 0 10px rgba(255,215,0,0.2); 
+            font-size: clamp(2rem, 8vw, 3rem); margin-bottom: 10px;
+        }
+        .sub-msg { color: #666; font-weight: 500; font-size: 1.05rem; }
+        
+        .gif-frame { 
+            width: 220px; height: 220px; border-radius: 40px; 
+            border: 5px solid #fff; box-shadow: 0 15px 35px rgba(0,0,0,0.08); 
+            object-fit: cover; margin-bottom: 20px;
+        }
+
+        .btn-romantic { 
+            background: white; border: 2px solid #ffd700;
+            padding: 12px 35px; border-radius: 50px; font-weight: 700; 
+            box-shadow: 0 8px 15px rgba(212, 175, 55, 0.1); 
+            cursor: pointer; color: #d4af37; margin-top: 25px;
+        }
+
+        .solar-system { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; }
+        .orbit { position: absolute; border: 1.5px solid rgba(212, 175, 55, 0.1); border-radius: 50%; animation: spin linear infinite; }
+        .orbit-1 { width: 140px; height: 140px; animation-duration: 6s; }
+        .orbit-2 { width: 210px; height: 210px; animation-duration: 10s; animation-direction: reverse; }
+        .planet { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); font-size: 22px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .hold-container { width: 250px; height: 10px; background: #eee; border-radius: 10px; margin-top: 20px; overflow: hidden; }
+        #holdProgress { height: 100%; background: linear-gradient(90deg, #ffd700, #ffcc33); width: 0%; transition: width 0.1s linear; }
+
+        #scratch-layer { display: none; position: fixed; inset: 0; background: white; z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
+        .scratch-box { position: relative; width: 85vw; height: 55vh; max-width: 360px; border-radius: 25px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        #revealed-img { width: 100%; height: 100%; object-fit: cover; }
+        #scratch-canvas { position: absolute; top: 0; left: 0; touch-action: none; }
+    </style>
+</head>
+<body>
+
+    <div id="db-loader">
+        <h2 style="font-family: 'Dancing Script', cursive; color: #d4af37; font-size: 1.5rem;">Waking up the sun...</h2>
+    </div>
+
+    <div class="header-tag">Made by SIVASINGH 💖</div>
+    
+    <div id="moon-container"><div class="moon"></div></div>
+
+    <audio id="bgMusic" loop src="tere-liye.mp3"></audio>
+
+    <div id="slide1" class="slide active">
+        <img src="gif1.gif" class="gif-frame">
+        <h1 class="glow-title">Rise and Shine!</h1>
+        <p class="sub-msg" id="p1-msg">Good morning! Hope you had sweet dreams. ✨</p>
+        <button onclick="startApp()" class="btn-romantic">Start My Day ☕</button>
+    </div>
+
+    <div id="slide2" class="slide">
+        <img src="gif2.gif" class="gif-frame">
+        <h1 class="glow-title">Sweetest Smile!</h1>
+        <p class="sub-msg" id="p2-msg">Your smile is the only sunshine I need today. 😊</p>
+        <button onclick="nextSlide()" class="btn-romantic">Next 🌸</button>
+    </div>
+
+    <div id="slide3" class="slide">
+        <div class="text-7xl mb-6" id="pulseHeart">✨</div>
+        <h1 class="text-xl font-bold text-gray-700">How much do I appreciate you?</h1>
+        <div class="hold-container"><div id="holdProgress"></div></div>
+        <button id="holdBtn" class="btn-romantic select-none">PRESS & HOLD ✨</button>
+    </div>
+
+    <div id="slide4" class="slide">
+        <div class="solar-system">
+            <div class="orbit orbit-1"><span class="planet">☕</span></div>
+            <div class="orbit orbit-2"><span class="planet">☀️</span></div>
+            <div class="text-6xl">🌟</div>
+        </div>
+        <h1 class="glow-title mt-10">Best Vibes Only!</h1>
+        <p class="sub-msg">Sending you positive energy for a wonderful day!</p>
+        <button onclick="nextSlide()" class="btn-romantic">Keep Going 🚀</button>
+    </div>
+
+    <div id="slide5" class="slide">
+        <img src="gif3.gif" class="gif-frame">
+        <h1 class="glow-title">Quick Hello?</h1>
+        <p class="sub-msg">Ready for a friendly morning chat?</p>
+        <div id="btnContainer" class="flex flex-wrap justify-center gap-3">
+            <button onclick="nextSlide()" class="btn-romantic">Yes, Sure! 😍</button>
+            <button id="noBtn" onclick="trapNo()" class="px-8 py-3 bg-gray-100 rounded-full text-gray-400 mt-6">Maybe ☕</button>
+        </div>
+    </div>
+
+    <div id="slide6" class="slide">
+        <h1 class="glow-title" id="p6-title">A Little Gift...</h1>
+        <p class="sub-msg">Have a beautiful day just like you!</p>
+        <button onclick="initScratch()" class="btn-romantic animate-bounce">OPEN SURPRISE 🎁</button>
+    </div>
+
+    <div id="scratch-layer">
+        <h1 class="glow-title" style="font-size: 1.8rem; margin-bottom: 20px;">Scratch for a Smile! ✨</h1>
+        <div class="scratch-box">
+            <img id="revealed-img" src="photo.jpg">
+            <canvas id="scratch-canvas"></canvas>
+        </div>
+        <p class="mt-6 italic text-gray-400">Insta - @smss1708</p>
+    </div>
+
+    <script>
+        // --- FIREBASE CONFIG ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // --- DYNAMIC CONTENT ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const uniqueId = urlParams.get('id');
+        let targetName = "Cutee";
+
+        if (uniqueId) {
+            db.ref("dynamic_links/" + uniqueId).once("value").then((snapshot) => {
+                if (snapshot.exists()) {
+                    targetName = snapshot.val().targetName;
+                    updateMorningText(targetName);
+                }
+                document.getElementById('db-loader').style.display = 'none';
+            }).catch(() => {
+                document.getElementById('db-loader').style.display = 'none';
+            });
+        } else {
+            document.getElementById('db-loader').style.display = 'none';
+        }
+
+        function updateMorningText(name) {
+            document.getElementById('p1-msg').innerText = `Good morning, ${name}! Hope you had sweet dreams. ✨`;
+            document.getElementById('p2-msg').innerText = `Your smile is the only sunshine I need today, ${name}. 😊`;
+            document.getElementById('p6-title').innerText = `${name}, A Little Gift...`;
+        }
+
+        // --- INTERACTION ---
+        let step = 1;
+        const music = document.getElementById('bgMusic');
+
+        function startApp() {
+            music.play().catch(() => {});
+            document.getElementById('moon-container').style.opacity = '0';
+            nextSlide();
+        }
+
+        function nextSlide() {
+            const current = document.getElementById('slide' + step);
+            if(current) current.classList.remove('active');
+            step++;
+            setTimeout(() => {
+                const nextS = document.getElementById('slide' + step);
+                if(nextS) nextS.classList.add('active');
+            }, 100);
+        }
+
+        function trapNo() {
+            document.getElementById('noBtn').style.display = 'none';
+            const container = document.getElementById('btnContainer');
+            for(let i=0; i<2; i++) {
+                const b = document.createElement('button');
+                b.className = 'btn-romantic'; b.innerHTML = 'Yes! ✨';
+                b.onclick = nextSlide; container.appendChild(b);
+            }
+        }
+
+        // Hold Logic
+        let hVal = 0, hInt;
+        const hBtn = document.getElementById('holdBtn'), hProg = document.getElementById('holdProgress'), pHeart = document.getElementById('pulseHeart');
+        
+        const startH = (e) => { 
+            e.preventDefault(); pHeart.style.transform = 'scale(1.5)';
+            hInt = setInterval(() => { 
+                hVal += 2.5; hProg.style.width = hVal + '%'; 
+                if(hVal >= 100) { clearInterval(hInt); nextSlide(); } 
+            }, 30); 
+        };
+        const endH = () => { clearInterval(hInt); hVal = 0; hProg.style.width = '0%'; pHeart.style.transform = 'scale(1)'; };
+        
+        hBtn.addEventListener('touchstart', startH); hBtn.addEventListener('mousedown', startH);
+        window.addEventListener('touchend', endH); window.addEventListener('mouseup', endH);
+
+        // Scratch Card
+        function initScratch() {
+            document.getElementById('scratch-layer').style.display = 'flex';
+            const canvas = document.getElementById('scratch-canvas');
+            const ctx = canvas.getContext('2d');
+            const box = canvas.parentElement;
+            canvas.width = box.offsetWidth; canvas.height = box.offsetHeight;
+            ctx.fillStyle = '#e0e0e0'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#999'; ctx.font = '700 18px Poppins'; ctx.textAlign = 'center';
+            ctx.fillText('SCRATCH ME 💖', canvas.width/2, canvas.height/2);
+
+            let drawing = false;
+            const scratch = (e) => {
+                if(!drawing) return;
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath(); ctx.arc(x, y, 40, 0, Math.PI * 2); ctx.fill();
+            };
+            canvas.onmousedown = () => drawing = true;
+            canvas.ontouchstart = (e) => { drawing = true; e.preventDefault(); };
+            window.onmouseup = window.ontouchend = () => drawing = false;
+            canvas.onmousemove = scratch;
+            canvas.ontouchmove = (e) => { scratch(e); e.preventDefault(); };
+        }
+    </script>
+</body>
+</html>

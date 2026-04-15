@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You ✨</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pink-glow: #ff85a1;
+            --soft-pink: #ffe4e9;
+            --white-glass: rgba(255, 255, 255, 0.8);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body { 
+            background: #fffafa; 
+            color: #444; 
+            overflow: hidden; 
+            height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+        }
+
+        /* Database Loader */
+        #loader {
+            position: fixed; inset: 0; background: #fffafa; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        .petals-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        .petal { position: absolute; background: var(--soft-pink); border-radius: 150% 0 150% 0; animation: drift 10s infinite linear; opacity: 0.6; }
+        @keyframes drift {
+            0% { transform: translateY(-10%) rotate(0deg); left: var(--start-x); }
+            100% { transform: translateY(110vh) rotate(360deg); left: var(--end-x); }
+        }
+
+        #credit { 
+            position: absolute; top: 20px; width: 100%; text-align: center; z-index: 100; 
+            font-size: 14px; color: #ff85a1; font-weight: 600; letter-spacing: 1px;
+        }
+
+        .container { width: 90%; max-width: 420px; height: 80vh; position: relative; z-index: 10; }
+
+        .page {
+            position: absolute; width: 100%; height: 100%;
+            background: var(--white-glass);
+            backdrop-filter: blur(15px);
+            border-radius: 40px;
+            padding: 40px 30px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center;
+            border: 2px solid #fff;
+            box-shadow: 0 20px 50px rgba(255, 133, 161, 0.15);
+            opacity: 0; visibility: hidden;
+            transform: translateY(30px) scale(0.95);
+            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .page.active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+
+        .glowing-text {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5rem;
+            color: #ff4d6d;
+            text-shadow: 0 0 15px rgba(255, 77, 109, 0.4);
+            margin-bottom: 20px;
+        }
+
+        .img-frame {
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            padding: 8px;
+            background: linear-gradient(45deg, #fff, var(--soft-pink));
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            animation: pulse 3s infinite ease-in-out;
+        }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .img-frame img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+
+        button {
+            padding: 14px 35px; border-radius: 50px; border: none;
+            background: #fff; color: #ff4d6d;
+            font-weight: 600; font-size: 16px;
+            box-shadow: 0 10px 20px rgba(255, 77, 109, 0.2);
+            cursor: pointer; transition: 0.3s;
+            border: 1px solid var(--soft-pink);
+            margin-top: 20px;
+        }
+        button:hover { background: #ff4d6d; color: #fff; transform: translateY(-3px); }
+
+        .stack { position: relative; width: 100%; height: 250px; margin-bottom: 40px; }
+        .polaroid {
+            width: 140px; background: #fff; padding: 10px 10px 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            position: absolute; transition: 0.5s;
+        }
+        .polaroid img { width: 100%; height: 130px; object-fit: cover; }
+
+        .meter-wrap { width: 100%; height: 10px; background: #eee; border-radius: 10px; margin: 20px 0; overflow: hidden; }
+        .meter-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #ff85a1, #ff4d6d); transition: 3s ease-in-out; }
+
+        .no-btn { position: absolute; white-space: nowrap; transition: 0.1s; }
+        .popup { position: fixed; inset: 0; background: rgba(255,255,255,0.9); display: none; z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .pop-card { background: #fff; padding: 30px; border-radius: 30px; border: 1px solid var(--soft-pink); text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <h2 style="font-family: 'Dancing Script', cursive; font-size: 2rem; color: #ff4d6d;">Creating Magic...</h2>
+    </div>
+
+    <div id="credit">Made by Ansh 💖 Insta - @smss1708</div>
+    <div class="petals-container" id="petals"></div>
+    <audio id="bgMusic" src="tere-liye.mp3" loop></audio>
+
+    <div class="container">
+        <div class="page active" id="p1">
+            <h1 class="glowing-text" id="welcome-title">Hey... ✨</h1>
+            <div class="img-frame"><img src="photo1.jpg"></div>
+            <p style="color: #888; margin-bottom: 10px;">I made something special for you.</p>
+            <button onclick="startApp()">Open My Heart 🎁</button>
+        </div>
+
+        <div class="page" id="p2">
+            <h2 class="glowing-text">You are Rare.</h2>
+            <p id="rare-text">In a world full of trends, you are a classic masterpiece.</p>
+            <button onclick="next(3)">Next 🌸</button>
+        </div>
+
+        <div class="page" id="p3">
+            <h2 class="glowing-text">Our Chemistry</h2>
+            <div class="meter-wrap"><div class="meter-bar" id="bar"></div></div>
+            <p id="mText">Matching our souls...</p>
+            <button id="mNext" style="display:none" onclick="next(4)">Continue ❤️</button>
+        </div>
+
+        <div class="page" id="p4">
+            <h2 class="glowing-text">My Promises</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div onclick="pop('To be your safest place. 🏡')" style="font-size: 40px; cursor:pointer">🏡</div>
+                <div onclick="pop('To listen to your unspoken words. ☁️')" style="font-size: 40px; cursor:pointer">☁️</div>
+                <div onclick="pop('To love you louder on hard days. 📣')" style="font-size: 40px; cursor:pointer">📣</div>
+                <div onclick="pop('To never let go of your hand. 🤝')" style="font-size: 40px; cursor:pointer">🤝</div>
+            </div>
+            <button onclick="next(5)" style="margin-top: 30px;">More... ➡️</button>
+        </div>
+
+        <div class="page" id="p5">
+            <h2 class="glowing-text">Why You?</h2>
+            <p id="why-text">"Because you have a soul that makes mine feel alive."</p>
+            <div class="stack">
+                <div class="polaroid" style="top:0; left:10%; transform: rotate(-5deg)"><img src="photo2.jpg"></div>
+                <div class="polaroid" style="top:10px; right:10%; transform: rotate(5deg)"><img src="photo3.jpg"></div>
+            </div>
+            <button onclick="next(6)">Keep Scrolling ✨</button>
+        </div>
+
+        <div class="page" id="p6">
+            <h2 class="glowing-text" id="gallery-title">Aesthetic You</h2>
+            <div style="display:flex; gap:10px; overflow-x: auto; padding: 10px;">
+                <img src="photo4.jpg" style="width:120px; border-radius:20px;">
+                <img src="photo5.jpg" style="width:120px; border-radius:20px;">
+                <img src="photo6.jpg" style="width:120px; border-radius:20px;">
+            </div>
+            <button onclick="next(7)">Almost there... ➡️</button>
+        </div>
+
+        <div class="page" id="p7">
+            <h2 class="glowing-text">Pure Vibes</h2>
+            <p id="vibe-text">Every moment with you is like a scene from a movie.</p>
+            <div class="img-frame" style="width: 140px; height: 140px;"><img src="photo7.jpg"></div>
+            <button onclick="next(8)">The Question 💌</button>
+        </div>
+
+        <div class="page" id="p8">
+            <h2 class="glowing-text">I have to ask...</h2>
+            <p id="question-text" style="margin-bottom: 20px;">Will you be mine forever?</p>
+            <button onclick="next(9)">Yes, 1000 Times! 💖</button>
+            <button class="no-btn" id="no" onmouseover="moveNo()">No 🥺</button>
+        </div>
+
+        <div class="page" id="p9">
+            <h1 class="glowing-text" id="final-love">I Love You! ♾️</h1>
+            <p id="dream-text">You're the dream I never want to wake up from.</p>
+            <div style="display:flex; gap:15px; margin-top:25px;">
+                <img src="photo8.jpg" style="width:70px; height:70px; border-radius:50%; border:2px solid #ff85a1;">
+                <img src="photo9.jpg" style="width:90px; height:90px; border-radius:50%; border:2px solid #ff85a1; transform: scale(1.1);">
+                <img src="photo10.jpg" style="width:70px; height:70px; border-radius:50%; border:2px solid #ff85a1;">
+            </div>
+        </div>
+    </div>
+
+    <div class="popup" id="pop"><div class="pop-card"><p id="pMsg"></p><button onclick="closePop()">Close</button></div></div>
+
+    <script>
+        // --- FIREBASE CONFIG ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // --- DYNAMIC FETCH ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const uniqueId = urlParams.get('id');
+        let targetName = "Cutee";
+
+        if (uniqueId) {
+            db.ref("dynamic_links/" + uniqueId).once("value").then((snapshot) => {
+                if (snapshot.exists()) {
+                    targetName = snapshot.val().targetName;
+                    updatePersonalization(targetName);
+                }
+                document.getElementById('loader').style.display = 'none';
+            }).catch(() => {
+                document.getElementById('loader').innerHTML = "<h2>Error loading...</h2>";
+            });
+        } else {
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        function updatePersonalization(name) {
+            document.getElementById('welcome-title').innerText = `Hey ${name}... ✨`;
+            document.getElementById('gallery-title').innerText = `Aesthetic ${name}`;
+            document.getElementById('question-text').innerText = `${name}, will you be mine forever?`;
+            document.getElementById('final-love').innerText = `I Love You, ${name}! ♾️`;
+        }
+
+        // --- APP LOGIC ---
+        function createPetals() {
+            const container = document.getElementById('petals');
+            for(let i=0; i<25; i++) {
+                const p = document.createElement('div');
+                p.className = 'petal';
+                p.style.width = Math.random() * 15 + 10 + 'px';
+                p.style.height = p.style.width;
+                p.style.setProperty('--start-x', Math.random() * 100 + 'vw');
+                p.style.setProperty('--end-x', Math.random() * 100 + 'vw');
+                p.style.animationDelay = Math.random() * 8 + 's';
+                p.style.animationDuration = Math.random() * 5 + 7 + 's';
+                container.appendChild(p);
+            }
+        }
+        createPetals();
+
+        function startApp() {
+            document.getElementById('bgMusic').play();
+            next(2);
+        }
+
+        function next(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('p'+id).classList.add('active');
+            if(id === 3) {
+                setTimeout(() => {
+                    document.getElementById('bar').style.width = '100%';
+                    setTimeout(() => {
+                        document.getElementById('mText').innerText = "Soulmates Found! ♾️";
+                        document.getElementById('mNext').style.display = "block";
+                    }, 3100);
+                }, 500);
+            }
+        }
+
+        function pop(t) {
+            document.getElementById('pMsg').innerText = t;
+            document.getElementById('pop').style.display = 'flex';
+        }
+        function closePop() { document.getElementById('pop').style.display = 'none'; }
+
+        function moveNo() {
+            const b = document.getElementById('no');
+            b.style.left = Math.random() * 70 + "%";
+            b.style.top = Math.random() * 70 + "%";
+        }
+    </script>
+</body>
+</html>
